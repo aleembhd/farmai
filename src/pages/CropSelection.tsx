@@ -2,8 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import confetti from 'canvas-confetti';
-import { functions } from '../firebase.tsx';
-import { httpsCallable } from 'firebase/functions';
 
 interface CropSelectionFormData {
   state: string;
@@ -206,6 +204,7 @@ export default function CropSelection() {
   });
   const [recommendations, setRecommendations] = useState<CropRecommendation[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     if (formData.state) {
@@ -225,28 +224,23 @@ export default function CropSelection() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
+    setError('');
+    
     try {
-      const cropRecommendationFunction = httpsCallable(functions, 'cropRecommendation');
-      const result = await cropRecommendationFunction(formData);
-      
-      const data = result.data as any;
-      console.log('Firebase Function Response:', data);
+      const response = await fetch('https://your-deployed-api-url/api/crop-recommendation', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData)
+      });
 
-      if (data.recommendations && Array.isArray(data.recommendations)) {
-        setRecommendations(data.recommendations);
-        triggerConfetti();
-      } else {
-        throw new Error('Invalid response format from server');
-      }
-    } catch (error: any) {
+      const data = await response.json();
+      setRecommendations(data.recommendations);
+      triggerConfetti();
+    } catch (error) {
       console.error('Error:', error);
-      setRecommendations([
-        { crop: "Unable to process recommendations" },
-        { crop: "Please try different input combinations" },
-        { crop: "Our AI is still learning about your region" },
-        { crop: "Try again in a few moments" }
-      ]);
+      setError('Failed to get recommendations. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -472,6 +466,15 @@ export default function CropSelection() {
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {error && (
+          <div className="mt-6 p-6 bg-red-50 rounded-lg shadow-md">
+            <h3 className="text-xl font-semibold text-red-800 mb-4 text-center">
+              ❌ Error ❌
+            </h3>
+            <p className="text-red-700">{error}</p>
           </div>
         )}
 
