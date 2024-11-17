@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import confetti from 'canvas-confetti';
+import { functions } from '../firebase.tsx';
+import { httpsCallable } from 'firebase/functions';
 
 interface CropSelectionFormData {
   state: string;
@@ -225,16 +227,11 @@ export default function CropSelection() {
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:3000/api/crop-recommendation', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await response.json();
-      console.log('Server Response:', data);
+      const cropRecommendationFunction = httpsCallable(functions, 'cropRecommendation');
+      const result = await cropRecommendationFunction(formData);
+      
+      const data = result.data as any;
+      console.log('Firebase Function Response:', data);
 
       if (data.recommendations && Array.isArray(data.recommendations)) {
         setRecommendations(data.recommendations);
