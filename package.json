@@ -5,6 +5,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
+    "build": "npm install && cd client && npm install && npm run build && cd .. && cp -r client/dist .",
     "dev": "nodemon server.js"
   },
   "dependencies": {

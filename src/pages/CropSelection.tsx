@@ -227,7 +227,7 @@ export default function CropSelection() {
     setError('');
     
     try {
-      const response = await fetch('https://your-deployed-api-url/api/crop-recommendation', {
+      const response = await fetch('/api/crop-recommendation', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
